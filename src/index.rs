@@ -931,7 +931,6 @@ impl Index {
       .open_table(RUNE_ID_TO_RUNE_ENTRY)?
       .len()
       .unwrap();
-    
     Ok(count)
   }
 
