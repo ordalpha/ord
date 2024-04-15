@@ -924,6 +924,17 @@ impl Index {
     Ok(entries)
   }
 
+  pub(crate) fn runes_count(&self) -> Result<u64> {
+    let count = self
+      .database
+      .begin_read()?
+      .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+      .len()
+      .unwrap();
+    
+    Ok(count)
+  }
+
   pub(crate) fn runes_paginated(
     &self,
     page_size: usize,

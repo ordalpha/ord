@@ -6,6 +6,7 @@ pub struct RunesHtml {
   pub more: bool,
   pub prev: Option<usize>,
   pub next: Option<usize>,
+  pub count: Option<usize>
 }
 
 impl PageContent for RunesHtml {
@@ -35,6 +36,7 @@ mod tests {
         more: false,
         prev: None,
         next: None,
+        count: None
       }
       .to_string(),
       "<h1>Runes</h1>
@@ -77,6 +79,7 @@ mod tests {
         prev: Some(1),
         next: Some(2),
         more: true,
+        count: Some(3)
       }
       .to_string(),
       "<h1>Runes</h1>

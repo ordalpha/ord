@@ -278,7 +278,8 @@ impl Server {
         ))
         .layer(
           CorsLayer::new()
-            .allow_methods([http::Method::GET])
+          .allow_methods([http::Method::GET, http::Method::POST])
+          .allow_headers([header::CONTENT_TYPE])
             .allow_origin(Any),
         )
         .layer(CompressionLayer::new())
@@ -715,6 +716,9 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
+
+      let count = Some(index.runes_count().unwrap() as usize);
+
       let (entries, more) = index.runes_paginated(50, page_index)?;
 
       let prev = page_index.checked_sub(1);
@@ -727,6 +731,7 @@ impl Server {
           more,
           prev,
           next,
+          count,
         })
         .into_response()
       } else {
@@ -735,6 +740,7 @@ impl Server {
           more,
           prev,
           next,
+          count
         }
         .page(server_config)
         .into_response()
