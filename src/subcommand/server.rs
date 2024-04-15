@@ -717,8 +717,10 @@ impl Server {
   ) -> ServerResult {
     task::block_in_place(|| {
 
-      let count = Some(index.runes_count().unwrap() as usize);
+      let count = index.runes_count().unwrap() as usize;
 
+      let pages = Some(count + 49 / 50);
+      
       let (entries, more) = index.runes_paginated(50, page_index)?;
 
       let prev = page_index.checked_sub(1);
@@ -731,7 +733,7 @@ impl Server {
           more,
           prev,
           next,
-          count,
+          pages,
         })
         .into_response()
       } else {
@@ -740,7 +742,7 @@ impl Server {
           more,
           prev,
           next,
-          count
+          pages
         }
         .page(server_config)
         .into_response()
