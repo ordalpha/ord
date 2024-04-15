@@ -115,7 +115,7 @@ pub mod outgoing;
 mod re;
 mod representation;
 pub mod runes;
-pub mod settings;
+mod settings;
 pub mod subcommand;
 mod tally;
 pub mod templates;
@@ -125,7 +125,8 @@ type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
-static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
+
+pub static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
 static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
 
