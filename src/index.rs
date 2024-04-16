@@ -946,7 +946,6 @@ impl Index {
       .begin_read()?
       .open_table(RUNE_ID_TO_RUNE_ENTRY)?
       .iter()?
-      .rev()
       .skip(page_index.saturating_mul(page_size))
       .take(page_size.saturating_add(1))
     {
