@@ -956,7 +956,7 @@ impl Index {
     varint::encode_to_vec(id.tx.into(), buffer);
     varint::encode_to_vec(balance, buffer);
   }
-
+  
   pub(crate) fn decode_rune_balance(buffer: &[u8]) -> Option<((RuneId, u128), usize)> {
     let mut len = 0;
     let (block, block_len) = varint::decode(&buffer[len..])?;

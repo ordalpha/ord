@@ -34,20 +34,30 @@ pub enum Event {
     rune_id: RuneId,
     txid: Txid
   },
-  RuneDebited {
-    rune_id: RuneId,
+  RuneUtxoSpent {
     block_height: u32,
     prev_outpoint: OutPoint,
-    from: Address<NetworkUnchecked>,
+    from: String,
+    txid: Txid
+  },
+  RuneUtxoCreated {
+    block_height: u32,
+    outpoint: OutPoint,
+    to: String,
+    txid: Txid
+  },
+  RuneDebited {
     amount: u128,
+    block_height: u32,
+    from: String,
+    rune_id: RuneId,
     txid: Txid
   },
   RuneCredited {
-    rune_id: RuneId,
-    block_height: u32,
-    outpoint: OutPoint,
-    to: Address<NetworkUnchecked>,
     amount: u128,
+    block_height: u32,
+    rune_id: RuneId,
+    to: String,
     txid: Txid
   }
 }
