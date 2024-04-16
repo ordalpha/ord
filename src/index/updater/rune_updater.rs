@@ -25,7 +25,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     
     let mut unallocated = self.unallocated(txid, tx)?;
 
-    let mut address_debit_balance = self.get_address_balance(&unallocated);
+    let address_debit_balance = self.get_address_balance(&unallocated);
     let mut address_credit_balance: HashMap<String, HashMap<RuneId, Lot>> = HashMap::new();
     let mut rune_ids = unallocated.keys().cloned().collect::<Vec<RuneId>>();
 

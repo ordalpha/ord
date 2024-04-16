@@ -66,7 +66,7 @@ impl Reorg {
       wtx.get_persistent_savepoint(wtx.list_persistent_savepoints()?.min().unwrap())?;
 
     wtx.restore_savepoint(&oldest_savepoint)?;
-
+    
     Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
     wtx.commit()?;
 

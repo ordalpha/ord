@@ -1047,7 +1047,7 @@ mod tests {
       }
     );
   }
-
+  
   #[test]
   fn from_options() {
     pretty_assert_eq!(

@@ -59,5 +59,9 @@ pub enum Event {
     rune_id: RuneId,
     to: String,
     txid: Txid
+  },
+  ReorgDetected {
+    depth: u32,
+    height: u32
   }
 }

@@ -638,6 +638,12 @@ impl Index {
 
           match err.downcast_ref() {
             Some(&reorg::Error::Recoverable { height, depth }) => {
+              // emit reorg event
+              if let Some(sender) = &self.event_sender {
+                sender.blocking_send(Event::ReorgDetected{
+                  height, depth
+                })?;
+              }
               Reorg::handle_reorg(self, height, depth)?;
             }
             Some(&reorg::Error::Unrecoverable) => {
@@ -956,7 +962,7 @@ impl Index {
     varint::encode_to_vec(id.tx.into(), buffer);
     varint::encode_to_vec(balance, buffer);
   }
-  
+
   pub(crate) fn decode_rune_balance(buffer: &[u8]) -> Option<((RuneId, u128), usize)> {
     let mut len = 0;
     let (block, block_len) = varint::decode(&buffer[len..])?;
