@@ -75,6 +75,7 @@ pub enum Event {
     height: u32
   },
   BlockEnd {
-    height: u32
+    height: u32,
+    event_count: u32
   }
 }

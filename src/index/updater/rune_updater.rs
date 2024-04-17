@@ -17,6 +17,8 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) statistic_to_count: &'a mut Table<'tx, u64, u64>,
   pub(super) transaction_id_to_rune: &'a mut Table<'tx, &'static TxidValue, u128>,
   pub(super) network: Network,
+  // keep track on rune events
+  pub(super) event_count: u32
 }
 
 impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
@@ -57,6 +59,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
               rune_id: id,
               amount: amount.n(),
             })?;
+            self.event_count += 1;
           }
         }
       }
@@ -230,6 +233,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           to: address_string.clone(),
           txid
         })?;
+        self.event_count += 1;
       }
 
       for (id, balance) in balances {
@@ -259,6 +263,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           let debit = address_debit_balance.get(&address).and_then(|rune_balance| rune_balance.get(&id).cloned()).unwrap_or_default();
           let credit = address_credit_balance.get(&address).and_then(|rune_balance| rune_balance.get(&id).cloned()).unwrap_or_default();
           if debit > credit {
+            // better handle error here
             sender.blocking_send(Event::RuneDebited {
               amount: (debit - credit).n(),
               block_height: self.height,
@@ -267,6 +272,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
               rune_id: id.clone(),
               txid
             }).unwrap();
+            self.event_count += 1;
           } else {
             sender.blocking_send(Event::RuneCredited {
               amount: (credit - debit).n(),
@@ -276,6 +282,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
               to: address.clone(),
               txid
             }).unwrap();
+            self.event_count += 1;
           }
         });  
       });
@@ -294,6 +301,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           rune_id: id,
           amount: amount.n(),
         })?;
+        self.event_count += 1;
       }
     }
 
@@ -376,7 +384,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     };
 
     self.id_to_entry.insert(id.store(), entry.store())?;
-
+    
     if let Some(sender) = self.event_sender {
       sender.blocking_send(Event::RuneEtched {
         block_height: self.height,
@@ -384,6 +392,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         txid,
         rune_id: id,
       })?;
+      self.event_count += 1;
     }
 
     let inscription_id = InscriptionId { txid, index: 0 };
