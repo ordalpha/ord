@@ -23,7 +23,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
   pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
     let artifact = Runestone::decipher(tx);
     
-    let mut unallocated = self.unallocated(txid, tx)?;
+    let mut unallocated = self.unallocated(txid, tx_index, tx)?;
 
     let address_debit_balance = self.get_address_balance(&unallocated);
     let mut address_credit_balance: HashMap<String, HashMap<RuneId, Lot>> = HashMap::new();
@@ -52,6 +52,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           if let Some(sender) = self.event_sender {
             sender.blocking_send(Event::RuneMinted {
               block_height: self.height,
+              tx_index,
               txid,
               rune_id: id,
               amount: amount.n(),
@@ -208,8 +209,9 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
       buffer.clear();
 
-      let address_string = output_addresses.get(&vout).unwrap().to_string();
-
+      let default = String::from("");
+      let address_string = output_addresses.get(&vout).unwrap_or(&default);
+      
       let mut balances = balances.into_iter().collect::<Vec<(RuneId, Lot)>>();
 
       // Sort balances by id so tests can assert balances in a fixed order
@@ -224,6 +226,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         sender.blocking_send(Event::RuneUtxoCreated {
           outpoint,
           block_height: self.height,
+          tx_index,
           to: address_string.clone(),
           txid
         })?;
@@ -259,6 +262,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             sender.blocking_send(Event::RuneDebited {
               amount: (debit - credit).n(),
               block_height: self.height,
+              tx_index,
               from: address.clone(),
               rune_id: id.clone(),
               txid
@@ -268,6 +272,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             sender.blocking_send(Event::RuneCredited {
               amount: (credit - debit).n(),
               block_height: self.height,
+              tx_index,
               rune_id: id.clone(),
               to: address.clone(),
               txid
@@ -285,6 +290,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       if let Some(sender) = self.event_sender {
         sender.blocking_send(Event::RuneBurned {
           block_height: self.height,
+          tx_index,
           txid,
           rune_id: id,
           amount: amount.n(),
@@ -375,6 +381,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     if let Some(sender) = self.event_sender {
       sender.blocking_send(Event::RuneEtched {
         block_height: self.height,
+        tx_index: id.tx,
         txid,
         rune_id: id,
       })?;
@@ -544,7 +551,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     address_balance
   }
 
-  fn unallocated(&mut self, txid: Txid, tx: &Transaction) -> Result<HashMap<RuneId, Vec<(Lot, Option<String>)>>> {
+  fn unallocated(&mut self, txid: Txid, tx_index: u32, tx: &Transaction) -> Result<HashMap<RuneId, Vec<(Lot, Option<String>)>>> {
     // map of rune ID to un-allocated balance of that rune
     let mut unallocated: HashMap<RuneId, Vec<(Lot, Option<String>)>> = HashMap::new();
 
@@ -563,6 +570,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           if let Some(address) = &address {
             sender.blocking_send(Event::RuneUtxoSpent {
               block_height: self.height,
+              tx_index,
               txid,
               from: address.clone(),
               prev_outpoint: input.previous_output

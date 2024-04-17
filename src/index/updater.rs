@@ -579,6 +579,11 @@ impl<'index> Updater<'index> {
     )?;
 
     if self.index.index_runes && self.height >= self.index.settings.first_rune_height() {
+
+      if let Some(sender) = self.index.event_sender.as_ref() {
+        sender.blocking_send(Event::BlockStart { height: self.height })?;
+      }
+
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut outpoint_to_rune_owner = wtx.open_table(OUTPOINT_TO_RUNE_OWNER)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
@@ -618,6 +623,10 @@ impl<'index> Updater<'index> {
       }
 
       rune_updater.update()?;
+
+      if let Some(sender) = self.index.event_sender.as_ref() {
+        sender.blocking_send(Event::BlockEnd { height: self.height })?;
+      }
     }
 
     height_to_block_header.insert(&self.height, &block.header.store())?;
