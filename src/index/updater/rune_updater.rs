@@ -267,8 +267,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
               rune_id: id.clone(),
               txid
             }).unwrap();
-          }
-          if credit > 0 {
+          } else {
             sender.blocking_send(Event::RuneCredited {
               amount: (credit - debit).n(),
               block_height: self.height,
