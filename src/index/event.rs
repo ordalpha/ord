@@ -21,18 +21,20 @@ pub enum Event {
     amount: u128,
     block_height: u32,
     tx_index: u32,
+    block_hash: BlockHash,
     rune_id: RuneId,
     txid: Txid,
   },
   RuneEtched {
     block_height: u32,
     tx_index: u32,
-    rune_id: RuneId,
+    block_hash: BlockHash,
     txid: Txid,
   },
   RuneMinted {
     amount: u128,
     block_height: u32,
+    block_hash: BlockHash,
     tx_index: u32,
     rune_id: RuneId,
     txid: Txid
@@ -40,6 +42,7 @@ pub enum Event {
   RuneUtxoSpent {
     block_height: u32,
     tx_index: u32,
+    block_hash: BlockHash,
     prev_outpoint: OutPoint,
     from: String,
     txid: Txid
@@ -47,6 +50,7 @@ pub enum Event {
   RuneUtxoCreated {
     block_height: u32,
     tx_index: u32,
+    block_hash: BlockHash,
     outpoint: OutPoint,
     to: String,
     txid: Txid
@@ -54,6 +58,7 @@ pub enum Event {
   RuneDebited {
     amount: u128,
     block_height: u32,
+    block_hash: BlockHash,
     tx_index: u32,
     from: String,
     rune_id: RuneId,
@@ -62,6 +67,7 @@ pub enum Event {
   RuneCredited {
     amount: u128,
     block_height: u32,
+    block_hash: BlockHash,
     tx_index: u32,
     rune_id: RuneId,
     to: String,
@@ -72,10 +78,12 @@ pub enum Event {
     height: u32
   },
   BlockStart {
-    height: u32
+    height: u32,
+    block_hash: BlockHash
   },
   BlockEnd {
     height: u32,
+    block_hash: BlockHash,
     event_count: u32
   }
 }

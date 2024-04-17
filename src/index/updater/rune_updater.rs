@@ -2,6 +2,7 @@ use super::*;
 
 pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) block_time: u32,
+  pub(super) block_hash: BlockHash,
   pub(super) burned: HashMap<RuneId, Lot>,
   pub(super) client: &'client Client,
   pub(super) event_sender: Option<&'a Sender<Event>>,
@@ -55,6 +56,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             sender.blocking_send(Event::RuneMinted {
               block_height: self.height,
               tx_index,
+              block_hash: self.block_hash,
               txid,
               rune_id: id,
               amount: amount.n(),
@@ -229,6 +231,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         sender.blocking_send(Event::RuneUtxoCreated {
           outpoint,
           block_height: self.height,
+          block_hash: self.block_hash,
           tx_index,
           to: address_string.clone(),
           txid
@@ -268,6 +271,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
               amount: (debit - credit).n(),
               block_height: self.height,
               tx_index,
+              block_hash: self.block_hash,
               from: address.clone(),
               rune_id: id.clone(),
               txid
@@ -278,6 +282,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
               amount: (credit - debit).n(),
               block_height: self.height,
               tx_index,
+              block_hash: self.block_hash,
               rune_id: id.clone(),
               to: address.clone(),
               txid
@@ -297,6 +302,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         sender.blocking_send(Event::RuneBurned {
           block_height: self.height,
           tx_index,
+          block_hash: self.block_hash,
           txid,
           rune_id: id,
           amount: amount.n(),
@@ -389,8 +395,8 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       sender.blocking_send(Event::RuneEtched {
         block_height: self.height,
         tx_index: id.tx,
+        block_hash: self.block_hash,
         txid,
-        rune_id: id,
       })?;
       self.event_count += 1;
     }
@@ -579,6 +585,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             sender.blocking_send(Event::RuneUtxoSpent {
               block_height: self.height,
               tx_index,
+              block_hash: self.block_hash,
               txid,
               from: address.clone(),
               prev_outpoint: input.previous_output
