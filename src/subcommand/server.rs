@@ -611,11 +611,14 @@ impl Server {
     task::block_in_place(|| {
       let mut response = Vec::new();
       for outpoint in outputs {
-        let (output_info, _) = index
-          .get_output_info(outpoint)?
-          .unwrap_or_default();
-
-        response.push(output_info);
+        let data = index
+          .get_output_info(outpoint)?;
+        
+        if let Some((output_info, _)) = data {
+          response.push(Some(output_info));
+        } else {
+          response.push(None);
+        }
       }
       Ok(Json(response).into_response())
     })
