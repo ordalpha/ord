@@ -278,7 +278,7 @@ impl Server {
           CorsLayer::new()
           .allow_methods([http::Method::GET, http::Method::POST])
           .allow_headers([header::CONTENT_TYPE])
-            .allow_origin(Any),
+          .allow_origin(Any),
         )
         .layer(CompressionLayer::new())
         .with_state(server_config);
@@ -613,7 +613,7 @@ impl Server {
       for outpoint in outputs {
         let (output_info, _) = index
           .get_output_info(outpoint)?
-          .ok_or_not_found(|| format!("output {outpoint}"))?;
+          .unwrap_or_default();
 
         response.push(output_info);
       }
