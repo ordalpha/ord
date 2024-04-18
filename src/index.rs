@@ -1524,7 +1524,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_indexed_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
+  pub(crate) fn get_transaction_ne(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       return Ok(Some(self.genesis_block_coinbase_transaction.clone()));
     }
@@ -1540,7 +1540,7 @@ impl Index {
       }
     }
 
-    return Ok(None);
+    Ok(self.client.get_raw_transaction(&txid, None).ok())
   }
 
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
@@ -2237,7 +2237,7 @@ impl Index {
     } else {
       indexed = self.contains_output(&outpoint)?;
 
-      let Some(tx) = self.get_indexed_transaction(outpoint.txid)? else {
+      let Some(tx) = self.get_transaction_ne(outpoint.txid)? else {
         return Ok(None);
       };
 
