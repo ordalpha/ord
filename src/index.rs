@@ -1524,6 +1524,25 @@ impl Index {
     )
   }
 
+  pub(crate) fn get_indexed_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
+    if txid == self.genesis_block_coinbase_txid {
+      return Ok(Some(self.genesis_block_coinbase_transaction.clone()));
+    }
+
+    if self.index_transactions {
+      if let Some(transaction) = self
+        .database
+        .begin_read()?
+        .open_table(TRANSACTION_ID_TO_TRANSACTION)?
+        .get(&txid.store())?
+      {
+        return Ok(Some(consensus::encode::deserialize(transaction.value())?));
+      }
+    }
+
+    return Ok(None);
+  }
+
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       return Ok(Some(self.genesis_block_coinbase_transaction.clone()));
@@ -2218,7 +2237,7 @@ impl Index {
     } else {
       indexed = self.contains_output(&outpoint)?;
 
-      let Some(tx) = self.get_transaction(outpoint.txid)? else {
+      let Some(tx) = self.get_indexed_transaction(outpoint.txid)? else {
         return Ok(None);
       };
 
