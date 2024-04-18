@@ -613,7 +613,7 @@ impl Server {
       for outpoint in outputs {
         let (output_info, _) = index
           .get_output_info(outpoint)?
-          .ok_or_not_found(|| format!("output {outpoint}"))?;
+          .unwrap_or_default();
 
         response.push(output_info);
       }
