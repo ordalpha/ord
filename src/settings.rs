@@ -442,6 +442,8 @@ impl Settings {
       bail!("Bitcoin RPC server is on {rpc_chain} but ord is on {ord_chain}");
     }
 
+    log::info!("Connected to bitcoin core");
+    
     Ok(client)
   }
 
