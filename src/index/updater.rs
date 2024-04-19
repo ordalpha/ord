@@ -170,7 +170,7 @@ impl<'index> Updater<'index> {
     let first_inscription_height = index.first_inscription_height;
 
     thread::spawn(move || loop {
-      log::info("Fetching block {}, heigh limit {}", height, height_limit.unwrap_or(0));      
+      log::info!("Fetching block {}, heigh limit {}", height, height_limit.unwrap_or(0));      
       if let Some(height_limit) = height_limit {
         if height >= height_limit {
           break;
