@@ -392,17 +392,29 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     };
 
     self.id_to_entry.insert(id.store(), entry.store())?;
-    
+
     if let Some(sender) = self.event_sender {
       sender.blocking_send(Event::RuneEtched {
         block_height: self.height,
         tx_index: id.tx,
         block_hash: self.block_hash,
         txid,
+        divisibility: entry.divisibility,
+        number,
+        premine: entry.premine,
+        spaced_rune: entry.spaced_rune.to_string(),
+        symbol: entry.symbol.clone().unwrap_or_default(),
+        turbo: entry.turbo,
+        amount: entry.terms.and_then(|t| t.amount),
+        cap: entry.terms.and_then(|t| t.cap),
+        height_start: entry.terms.and_then(|t| t.height.0),
+        height_end: entry.terms.and_then(|t| t.height.1),
+        offset_start: entry.terms.and_then(|t| t.offset.0),
+        offset_end: entry.terms.and_then(|t| t.offset.1)
       })?;
       self.event_count += 1;
     }
-
+    
     let inscription_id = InscriptionId { txid, index: 0 };
 
     if let Some(sequence_number) = self

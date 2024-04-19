@@ -30,6 +30,21 @@ pub enum Event {
     tx_index: u32,
     block_hash: BlockHash,
     txid: Txid,
+
+    divisibility: u8,
+    number: u64,
+    premine: u128,
+    spaced_rune: String,
+    symbol: char,
+    turbo: bool,
+    
+    amount:      Option<u128>,
+    cap:         Option<u128>,
+    height_start: Option<u64>,
+    height_end:   Option<u64>,
+    offset_start: Option<u64>,
+    offset_end:   Option<u64>
+
   },
   RuneMinted {
     amount: u128,
