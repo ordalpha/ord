@@ -632,7 +632,10 @@ impl Index {
       };
 
       match updater.update_index(wtx) {
-        Ok(ok) => return Ok(ok),
+        Ok(ok) => {
+          log::info!("update index returned ok");
+          return Ok(ok)
+        },
         Err(err) => {
           log::info!("{}", err.to_string());
 
