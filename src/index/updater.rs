@@ -115,6 +115,7 @@ impl<'index> Updater<'index> {
         if height != self.height {
           // another update has run between committing and beginning the new
           // write transaction
+          log::info!("Another update has run between committing and beginning the new write transaction");
           break;
         }
         wtx
@@ -128,7 +129,7 @@ impl<'index> Updater<'index> {
       }
 
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-        println!("Shutting down flag is true");
+        log::info!("Shutting down flag is true");
         break;
       }
     }
