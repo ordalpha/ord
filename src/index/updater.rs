@@ -56,8 +56,6 @@ impl<'index> Updater<'index> {
           .unwrap_or(0),
       )?;
 
-    log::info!("Starting Progress bar");
-
     let mut progress_bar = if cfg!(test)
       || log_enabled!(log::Level::Info)
       || starting_height <= self.height
@@ -77,12 +75,9 @@ impl<'index> Updater<'index> {
 
     let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(&self.index.settings)?;
 
-    log::info!("Starting to Index");
-
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
     while let Ok(block) = rx.recv() {
-      log::info!("Before index block");
       self.index_block(
         &mut outpoint_sender,
         &mut value_receiver,
@@ -90,7 +85,6 @@ impl<'index> Updater<'index> {
         block,
         &mut value_cache,
       )?;
-      log::info!("Finish index block");
 
       if let Some(progress_bar) = &mut progress_bar {
         progress_bar.inc(1);

@@ -48,6 +48,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     }
     
     if let Some(artifact) = &artifact {
+      
       if let Some(id) = artifact.mint() {
         if let Some(amount) = self.mint(id)? {
           unallocated.entry(id).or_default().push((amount, None));
@@ -144,6 +145,8 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
               amount.min(*balance)
             };
 
+            println!("For Rune {:?}", id);
+            println!("Allocating {} to output {}, with balance {}", amount.0, output, balance.0);
             allocate(balance, amount, output);
           }
         }
@@ -414,7 +417,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       })?;
       self.event_count += 1;
     }
-    
+
     let inscription_id = InscriptionId { txid, index: 0 };
 
     if let Some(sequence_number) = self
