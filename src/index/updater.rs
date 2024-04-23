@@ -623,12 +623,12 @@ impl<'index> Updater<'index> {
         event_count: 0
       };
 
+      let start = Instant::now();       
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
-        let start = Instant::now();
         rune_updater.index_runes(u32::try_from(i).unwrap(), tx, *txid)?;
-        let updated_time = start.elapsed();
-        println!("Update 1 Tx time: {:?}", updated_time);
       }
+      let updated_time = start.elapsed();
+      println!("Updated {} Tx time: {:?}", block.txdata.len(), updated_time);
 
       if let Some(sender) = self.index.event_sender.as_ref() {
         sender.blocking_send(Event::BlockEnd { height: self.height, event_count: rune_updater.event_count, block_hash })?;
