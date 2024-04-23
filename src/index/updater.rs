@@ -581,11 +581,15 @@ impl<'index> Updater<'index> {
 
     if self.index.index_runes && self.height >= self.index.settings.first_rune_height() {
 
+      log::info!("Indexing Rune");
+
       let block_hash = block.header.block_hash(); 
 
-      if let Some(sender) = self.index.event_sender.as_ref() {
+      if let Some(sender) = &self.index.event_sender {
         sender.blocking_send(Event::BlockStart { height: self.height, block_hash })?;
       }
+
+      log::info!("Sent Block Start Message");
 
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut outpoint_to_rune_owner = wtx.open_table(OUTPOINT_TO_RUNE_OWNER)?;
@@ -627,10 +631,10 @@ impl<'index> Updater<'index> {
         rune_updater.index_runes(u32::try_from(i).unwrap(), tx, *txid)?;
       }
 
-      if let Some(sender) = self.index.event_sender.as_ref() {
+      if let Some(sender) = &self.index.event_sender {
         sender.blocking_send(Event::BlockEnd { height: self.height, event_count: rune_updater.event_count, block_hash })?;
       }
-
+      
       rune_updater.update()?;
     }
 
