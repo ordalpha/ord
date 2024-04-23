@@ -248,8 +248,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         vout: vout.try_into().unwrap(),
       };
 
-      println!("Processing output {:?} or vout {} for address {}", outpoint, vout, address_string);
-
       if let Some(sender) = self.event_sender {
         sender.blocking_send(Event::RuneUtxoCreated {
           outpoint,
