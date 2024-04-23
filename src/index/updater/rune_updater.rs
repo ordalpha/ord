@@ -22,9 +22,11 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) event_count: u32
 }
 
+const HAS_TX_EVENTS: bool = false;
+
 impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
   pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
-    
+
     let mut unallocated = self.unallocated(txid, tx_index, tx)?;
     let artifact = Runestone::decipher(tx);
 
@@ -56,15 +58,9 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     }
     
     if let Some(artifact) = &artifact {
-
-      let start = Instant::now();
-      
       if let Some(id) = artifact.mint() {
         if let Some(amount) = self.mint(id)? {
           unallocated.entry(id).or_default().push((amount, None));
-          
-          let event_send_start = Instant::now();
-
           if let Some(sender) = self.event_sender {
             match sender.try_send(Event::RuneMinted {
               block_height: self.height,
@@ -81,9 +77,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             };
             self.event_count += 1;
           }
-
-          let event_send_duration = event_send_start.elapsed();
-          println!("Event send duration: {:?}", event_send_duration);
         }
       }
 
@@ -240,8 +233,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       }
     }
 
-    let save_balance_start = Instant::now();
-
     // update outpoint balances
     let mut buffer: Vec<u8> = Vec::new();
     for (vout, balances) in allocated.into_iter().enumerate() {
@@ -272,16 +263,18 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         vout: vout.try_into().unwrap(),
       };
       
-      if let Some(sender) = self.event_sender {
-        sender.blocking_send(Event::RuneUtxoCreated {
-          outpoint,
-          block_height: self.height,
-          block_hash: self.block_hash,
-          tx_index,
-          to: address_string.clone(),
-          txid
-        })?;
-        self.event_count += 1;
+      if HAS_TX_EVENTS {
+        if let Some(sender) = self.event_sender {
+          sender.blocking_send(Event::RuneUtxoCreated {
+            outpoint,
+            block_height: self.height,
+            block_hash: self.block_hash,
+            tx_index,
+            to: address_string.clone(),
+            txid
+          })?;
+          self.event_count += 1;
+        }  
       }
 
       for (id, balance) in balances {
@@ -299,47 +292,44 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         .insert(&outpoint.store(),address_string.as_bytes())?;
     }
 
-    // let save_balance_time = save_balance_start.elapsed();
-    // println!("save balance time: {:?}", save_balance_time);
-    
-
     // emit transfer related events
-
-    if let Some(sender) = self.event_sender {
-      // get unique rune ids
-      let unique_rune_ids: HashSet<RuneId> = rune_ids.into_iter().collect();
-      let unique_addresses: HashSet<String> = address_debit_balance.clone().into_keys().chain(address_credit_balance.clone().into_keys()).collect();
-      
-      unique_addresses.into_iter().for_each(|address| {
-        unique_rune_ids.iter().for_each(|id| {
-          let debit = address_debit_balance.get(&address).and_then(|rune_balance| rune_balance.get(&id).cloned()).unwrap_or_default();
-          let credit = address_credit_balance.get(&address).and_then(|rune_balance| rune_balance.get(&id).cloned()).unwrap_or_default();
-          if debit > credit {
-            // better handle error here
-            sender.blocking_send(Event::RuneDebited {
-              amount: (debit - credit).n(),
-              block_height: self.height,
-              tx_index,
-              block_hash: self.block_hash,
-              from: address.clone(),
-              rune_id: id.clone(),
-              txid
-            }).unwrap();
-            self.event_count += 1;
-          } else {
-            sender.blocking_send(Event::RuneCredited {
-              amount: (credit - debit).n(),
-              block_height: self.height,
-              tx_index,
-              block_hash: self.block_hash,
-              rune_id: id.clone(),
-              to: address.clone(),
-              txid
-            }).unwrap();
-            self.event_count += 1;
-          }
-        });  
-      });
+    if HAS_TX_EVENTS {
+      if let Some(sender) = self.event_sender {
+        // get unique rune ids
+        let unique_rune_ids: HashSet<RuneId> = rune_ids.into_iter().collect();
+        let unique_addresses: HashSet<String> = address_debit_balance.clone().into_keys().chain(address_credit_balance.clone().into_keys()).collect();
+  
+        unique_addresses.into_iter().for_each(|address| {
+          unique_rune_ids.iter().for_each(|id| {
+            let debit = address_debit_balance.get(&address).and_then(|rune_balance| rune_balance.get(&id).cloned()).unwrap_or_default();
+            let credit = address_credit_balance.get(&address).and_then(|rune_balance| rune_balance.get(&id).cloned()).unwrap_or_default();
+            if debit > credit {
+              // better handle error here
+              sender.blocking_send(Event::RuneDebited {
+                amount: (debit - credit).n(),
+                block_height: self.height,
+                tx_index,
+                block_hash: self.block_hash,
+                from: address.clone(),
+                rune_id: id.clone(),
+                txid
+              }).unwrap();
+              self.event_count += 1;
+            } else {
+              sender.blocking_send(Event::RuneCredited {
+                amount: (credit - debit).n(),
+                block_height: self.height,
+                tx_index,
+                block_hash: self.block_hash,
+                rune_id: id.clone(),
+                to: address.clone(),
+                txid
+              }).unwrap();
+              self.event_count += 1;
+            }
+          });  
+        });
+      };   
     };
 
     // increment entries with burned runes
@@ -640,17 +630,19 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         let address = String::from_utf8(owner_buffer.to_vec()).ok();
         
         // emit debit events
-        if let Some(sender) = self.event_sender {
-          if let Some(address) = &address {
-            sender.blocking_send(Event::RuneUtxoSpent {
-              block_height: self.height,
-              tx_index,
-              block_hash: self.block_hash,
-              txid,
-              from: address.clone(),
-              prev_outpoint: input.previous_output
-            })?;
-          }
+        if HAS_TX_EVENTS {
+          if let Some(sender) = self.event_sender {
+            if let Some(address) = &address {
+              sender.blocking_send(Event::RuneUtxoSpent {
+                block_height: self.height,
+                tx_index,
+                block_hash: self.block_hash,
+                txid,
+                from: address.clone(),
+                prev_outpoint: input.previous_output
+              })?;
+            }
+          }  
         }
 
         if let Some(guard) = self
