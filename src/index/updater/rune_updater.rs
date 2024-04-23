@@ -66,14 +66,19 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           let event_send_start = Instant::now();
 
           if let Some(sender) = self.event_sender {
-            sender.blocking_send(Event::RuneMinted {
+            match sender.try_send(Event::RuneMinted {
               block_height: self.height,
               tx_index,
               block_hash: self.block_hash,
               txid,
               rune_id: id,
               amount: amount.n(),
-            })?;
+            }) {
+              Ok(_) => {},
+              Err(e) => {
+                println!("Error sending event: {:?}", e);
+              }
+            };
             self.event_count += 1;
           }
 
