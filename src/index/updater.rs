@@ -629,7 +629,7 @@ impl<'index> Updater<'index> {
       }
       let updated_time = start.elapsed();
       println!("Updated {} Tx time: {:?}", block.txdata.len(), updated_time);
-
+      
       if let Some(sender) = self.index.event_sender.as_ref() {
         sender.blocking_send(Event::BlockEnd { height: self.height, event_count: rune_updater.event_count, block_hash })?;
       }

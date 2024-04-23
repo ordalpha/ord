@@ -62,7 +62,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       if let Some(id) = artifact.mint() {
         if let Some(amount) = self.mint(id)? {
           unallocated.entry(id).or_default().push((amount, None));
-
           if let Some(sender) = self.event_sender {
             sender.blocking_send(Event::RuneMinted {
               block_height: self.height,
@@ -76,6 +75,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           }
         }
       }
+
       let etched = self.etched(tx_index, tx, artifact)?;
 
       if let Artifact::Runestone(runestone) = artifact {
@@ -107,6 +107,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             continue;
           };
           let balance = &mut Lot(balance_items.iter().map(|(balance, _)| balance.0).sum::<u128>());
+          let original_balance = balance.clone();
 
           let mut allocate = |balance: &mut Lot, amount: Lot, output: usize| {
             if amount > 0 {
@@ -157,7 +158,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           }
 
           // for the consumed balance, adjust the balance_items
-          let original_balance = Lot(balance_items.iter().map(|(balance, _)| balance.0).sum::<u128>());
           let used_balance = &mut (original_balance - *balance);
           
           for (balance, _) in balance_items.iter_mut() {
@@ -172,7 +172,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
           // remove empty balance items
           balance_items.retain(|(balance, _)| balance.0 > 0);
-          
         }
       }
 
