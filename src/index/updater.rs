@@ -631,10 +631,15 @@ impl<'index> Updater<'index> {
         rune_updater.index_runes(u32::try_from(i).unwrap(), tx, *txid)?;
       }
 
+      log::info!("Updated Rune");
+
       if let Some(sender) = &self.index.event_sender {
         sender.blocking_send(Event::BlockEnd { height: self.height, event_count: rune_updater.event_count, block_hash })?;
       }
-      
+
+      log::info!("Sent Block End Message");
+
+
       rune_updater.update()?;
     }
 
