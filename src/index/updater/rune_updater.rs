@@ -26,7 +26,12 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
   pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
     let artifact = Runestone::decipher(tx);
     
+    let start = Instant::now();
     let mut unallocated = self.unallocated(txid, tx_index, tx)?;
+    let unallocated_time = start.elapsed();
+    println!("unallocated time: {:?}", unallocated_time);
+
+    let start2 = Instant::now();
 
     let address_debit_balance = self.get_address_balance(&unallocated);
     let mut address_credit_balance: HashMap<String, HashMap<RuneId, Lot>> = HashMap::new();
@@ -46,8 +51,13 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     }) {
       output_addresses.insert(vout, address);
     }
+
+    let unallocated_time_2 = start2.elapsed();
+    println!("unallocated time: {:?}", unallocated_time_2);
     
     if let Some(artifact) = &artifact {
+
+      let start = Instant::now();
       
       if let Some(id) = artifact.mint() {
         if let Some(amount) = self.mint(id)? {
@@ -66,7 +76,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
           }
         }
       }
-
       let etched = self.etched(tx_index, tx, artifact)?;
 
       if let Artifact::Runestone(runestone) = artifact {
@@ -170,9 +179,14 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       if let Some((id, rune)) = etched {
         self.create_rune_entry(txid, artifact, id, rune)?;
       }
+
+      let etched_time = start.elapsed();
+      println!("parse etch and edict time: {:?}", etched_time);
     }
 
     let mut burned: HashMap<RuneId, Lot> = HashMap::new();
+
+    let start_pointer = Instant::now();
 
     if let Some(Artifact::Cenotaph(_)) = artifact {
       for (id, balance_items) in unallocated {
@@ -218,6 +232,11 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       }
     }
 
+    let pointer_time = start_pointer.elapsed();
+    println!("process remain time: {:?}", pointer_time);
+
+    let save_balance_start = Instant::now();
+
     // update outpoint balances
     let mut buffer: Vec<u8> = Vec::new();
     for (vout, balances) in allocated.into_iter().enumerate() {
@@ -247,7 +266,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         txid,
         vout: vout.try_into().unwrap(),
       };
-
+      
       if let Some(sender) = self.event_sender {
         sender.blocking_send(Event::RuneUtxoCreated {
           outpoint,
@@ -275,8 +294,13 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         .insert(&outpoint.store(),address_string.as_bytes())?;
     }
 
+    let save_balance_time = save_balance_start.elapsed();
+    println!("save balance time: {:?}", save_balance_time);
+    
+
     // emit transfer related events
-      
+    let fire_transfer_events_start = Instant::now();
+
     if let Some(sender) = self.event_sender {
       // get unique rune ids
       let unique_rune_ids: HashSet<RuneId> = rune_ids.into_iter().collect();
@@ -314,6 +338,8 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       });
     };
 
+    let fire_transfer_events_time = fire_transfer_events_start.elapsed();
+    println!("fire transfer events time: {:?}", fire_transfer_events_time);
 
     // increment entries with burned runes
     for (id, amount) in burned {
