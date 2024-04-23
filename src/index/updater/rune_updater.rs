@@ -31,10 +31,11 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     // break early if nothing to index
     if let Some(Artifact::Cenotaph(cenotaph)) = &artifact {
       if cenotaph.etching.is_none() && cenotaph.mint.is_none() && unallocated.keys().len() == 0 {
+        println!("Tx {} no runes to index", tx_index);
         return Ok(());
       }
     }
- 
+    
     let address_debit_balance = self.get_address_balance(&unallocated);
     let mut address_credit_balance: HashMap<String, HashMap<RuneId, Lot>> = HashMap::new();
     let mut rune_ids = unallocated.keys().cloned().collect::<Vec<RuneId>>();
@@ -293,7 +294,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     
 
     // emit transfer related events
-    
+
     if let Some(sender) = self.event_sender {
       // get unique rune ids
       let unique_rune_ids: HashSet<RuneId> = rune_ids.into_iter().collect();
