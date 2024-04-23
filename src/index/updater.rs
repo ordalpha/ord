@@ -115,7 +115,6 @@ impl<'index> Updater<'index> {
         if height != self.height {
           // another update has run between committing and beginning the new
           // write transaction
-          log::info!("Another update has run between committing and beginning the new write transaction");
           break;
         }
         wtx
@@ -129,7 +128,6 @@ impl<'index> Updater<'index> {
       }
 
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-        log::info!("Shutting down flag is true");
         break;
       }
     }
@@ -583,15 +581,11 @@ impl<'index> Updater<'index> {
 
     if self.index.index_runes && self.height >= self.index.settings.first_rune_height() {
 
-      log::info!("Indexing Rune");
-
       let block_hash = block.header.block_hash(); 
 
       if let Some(sender) = &self.index.event_sender {
         sender.blocking_send(Event::BlockStart { height: self.height, block_hash })?;
       }
-
-      log::info!("Sent Block Start Message");
 
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut outpoint_to_rune_owner = wtx.open_table(OUTPOINT_TO_RUNE_OWNER)?;
@@ -633,14 +627,9 @@ impl<'index> Updater<'index> {
         rune_updater.index_runes(u32::try_from(i).unwrap(), tx, *txid)?;
       }
 
-      log::info!("Updated Rune");
-
       if let Some(sender) = &self.index.event_sender {
         sender.blocking_send(Event::BlockEnd { height: self.height, event_count: rune_updater.event_count, block_hash })?;
       }
-
-      log::info!("Sent Block End Message");
-
 
       rune_updater.update()?;
     }

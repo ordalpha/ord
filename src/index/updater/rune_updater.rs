@@ -177,9 +177,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       if let Some((id, rune)) = etched {
         self.create_rune_entry(txid, artifact, id, rune)?;
       }
-
-      // let etched_time = start.elapsed();
-      // println!("parse etch and edict time: {:?}", etched_time);
     }
 
     let mut burned: HashMap<RuneId, Lot> = HashMap::new();
