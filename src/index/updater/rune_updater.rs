@@ -70,19 +70,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
               rune_id: id,
               amount: amount.n(),
             })?;
-            // match sender.try_send(Event::RuneMinted {
-            //   block_height: self.height,
-            //   tx_index,
-            //   block_hash: self.block_hash,
-            //   txid,
-            //   rune_id: id,
-            //   amount: amount.n(),
-            // }) {
-            //   Ok(_) => {},
-            //   Err(e) => {
-            //     println!("Error sending event: {:?}", e);
-            //   }
-            // };
             self.event_count += 1;
           }
         }
