@@ -62,6 +62,9 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       if let Some(id) = artifact.mint() {
         if let Some(amount) = self.mint(id)? {
           unallocated.entry(id).or_default().push((amount, None));
+          
+          let event_send_start = Instant::now();
+
           if let Some(sender) = self.event_sender {
             sender.blocking_send(Event::RuneMinted {
               block_height: self.height,
@@ -73,6 +76,9 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             })?;
             self.event_count += 1;
           }
+
+          let event_send_duration = event_send_start.elapsed();
+          println!("Event send duration: {:?}", event_send_duration);
         }
       }
 
