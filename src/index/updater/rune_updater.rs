@@ -24,13 +24,17 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
 
 impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
   pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
-    let artifact = Runestone::decipher(tx);
     
-    let start = Instant::now();
     let mut unallocated = self.unallocated(txid, tx_index, tx)?;
-    let unallocated_time = start.elapsed();
-    println!("unallocated time: {:?}", unallocated_time);
+    let artifact = Runestone::decipher(tx);
 
+    // break early if nothing to index
+    if let Some(Artifact::Cenotaph(cenotaph)) = &artifact {
+      if cenotaph.etching.is_none() && cenotaph.mint.is_none() && unallocated.keys().len() == 0 {
+        return Ok(());
+      }
+    }
+    
     let start2 = Instant::now();
 
     let address_debit_balance = self.get_address_balance(&unallocated);
