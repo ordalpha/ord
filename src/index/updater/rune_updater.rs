@@ -201,7 +201,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             .map(|(vout, _tx_out)| vout)
         })
       {
-        println!("Updating allocated here");
         for (id, balance_items) in unallocated {
           let balance = balance_items.iter().map(|(balance, _)| balance.0).sum::<u128>();
           
