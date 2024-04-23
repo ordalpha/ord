@@ -128,6 +128,7 @@ impl<'index> Updater<'index> {
       }
 
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        println!("Shutting down flag is true");
         break;
       }
     }
