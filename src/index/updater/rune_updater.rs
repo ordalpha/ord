@@ -144,11 +144,26 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             } else {
               amount.min(*balance)
             };
-
-            println!("For Rune {:?}", id);
-            println!("Allocating {} to output {}, with balance {}", amount.0, output, balance.0);
             allocate(balance, amount, output);
           }
+
+          // for the consumed balance, adjust the balance_items
+          let original_balance = Lot(balance_items.iter().map(|(balance, _)| balance.0).sum::<u128>());
+          let used_balance = &mut (original_balance - *balance);
+          
+          for (balance, _) in balance_items.iter_mut() {
+            if *balance > *used_balance {
+              *balance -= *used_balance;
+              break;
+            } else {
+              *used_balance -= *balance;
+              *balance = Lot(0);
+            }
+          }
+
+          // remove empty balance items
+          balance_items.retain(|(balance, _)| balance.0 > 0);
+          
         }
       }
 
@@ -186,8 +201,10 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             .map(|(vout, _tx_out)| vout)
         })
       {
+        println!("Updating allocated here");
         for (id, balance_items) in unallocated {
           let balance = balance_items.iter().map(|(balance, _)| balance.0).sum::<u128>();
+          
           if balance > 0 {
             *allocated[vout].entry(id).or_default() += balance;
           }
@@ -231,6 +248,8 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         txid,
         vout: vout.try_into().unwrap(),
       };
+
+      println!("Processing output {:?} or vout {} for address {}", outpoint, vout, address_string);
 
       if let Some(sender) = self.event_sender {
         sender.blocking_send(Event::RuneUtxoCreated {
