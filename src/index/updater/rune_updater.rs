@@ -191,6 +191,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     if let Some(Artifact::Cenotaph(_)) = artifact {
       for (id, balance_items) in unallocated {
         let balance = balance_items.iter().map(|(balance, _)| balance.0).sum::<u128>();
+        println!("Cenotaph, txid: {:?} burned rune id: {:?} amount: {:?}", txid, id.clone(), balance);
         *burned.entry(id).or_default() += balance;
       }
     } else {
@@ -226,6 +227,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         for (id, balance_items) in unallocated {
           let balance = balance_items.iter().map(|(balance, _)| balance.0).sum::<u128>();
           if balance > 0 {
+            println!("Non Pointer, txid: {:?} burned rune id: {:?} amount: {:?}", txid, id.clone(), balance);
             *burned.entry(id).or_default() += balance;
           }
         }
@@ -242,6 +244,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
       // increment burned balances
       if tx.output[vout].script_pubkey.is_op_return() {
         for (id, balance) in &balances {
+          println!("OP Return, txid: {:?} burned rune id: {:?} amount: {:?}", txid, id.clone(), balance.n());
           *burned.entry(*id).or_default() += *balance;
         }
         continue;
@@ -339,7 +342,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     // loop through burn entry to emit events
     for (id, amount) in &self.burned {
       if amount.0 > 0 {
-        println!("txid: {:?} burned rune id: {:?} amount: {:?}", txid, id.clone(), amount.n());
         if let Some(sender) = self.event_sender {
           sender.blocking_send(Event::RuneBurned {
             block_height: self.height,
