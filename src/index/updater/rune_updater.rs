@@ -37,6 +37,9 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
     // break early if nothing to index
     if let Some(Artifact::Cenotaph(cenotaph)) = &artifact {
+      if self.height == 2584616 && unallocated.keys().len() == 0 {
+        println!("etching {:?} mint: {:?}", cenotaph.etching, cenotaph.mint);
+      }
       if cenotaph.etching.is_none() && cenotaph.mint.is_none() && unallocated.keys().len() == 0 {
         return Ok(());
       }
