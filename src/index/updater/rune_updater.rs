@@ -339,6 +339,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     // loop through burn entry to emit events
     for (id, amount) in &self.burned {
       if amount.0 > 0 {
+        println!("txid: {:?} burned rune id: {:?} amount: {:?}", txid, id.clone(), amount.n());
         if let Some(sender) = self.event_sender {
           sender.blocking_send(Event::RuneBurned {
             block_height: self.height,
