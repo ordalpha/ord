@@ -28,6 +28,11 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
   pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
 
     let mut unallocated = self.unallocated(txid, tx_index, tx)?;
+
+    if self.height == 2584616 {
+      println!("unallocated: {:?}", unallocated);
+    }
+
     let artifact = Runestone::decipher(tx);
 
     // break early if nothing to index
@@ -265,7 +270,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
             txid
           })?;
           self.event_count += 1;
-        }  
+        }
       }
 
       for (id, balance) in balances {
