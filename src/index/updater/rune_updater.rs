@@ -29,8 +29,8 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
 
     let mut unallocated = self.unallocated(txid, tx_index, tx)?;
 
-    if self.height == 2584616 {
-      println!("unallocated: {:?}", unallocated);
+    if self.height == 2584616 && unallocated.keys().len() > 0 {
+      println!("txid {:?} tx_index: {:?} unallocated: {:?}", txid, tx_index, unallocated);
     }
 
     let artifact = Runestone::decipher(tx);
