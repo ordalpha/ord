@@ -629,7 +629,7 @@ impl<'index> Updater<'index> {
       }
 
       if let Some(sender) = &self.index.event_sender {
-        sender.blocking_send(Event::BlockEnd { height: self.height, event_count: rune_updater.event_count, block_hash })?;
+        sender.blocking_send(Event::BlockEnd { height: self.height, event_count: rune_updater.event_count, block_hash, block_time })?;
       }
 
       rune_updater.update()?;

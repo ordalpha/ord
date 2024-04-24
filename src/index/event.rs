@@ -100,6 +100,7 @@ pub enum Event {
   BlockEnd {
     height: u32,
     block_hash: BlockHash,
-    event_count: u32
+    event_count: u32,
+    block_time: u32
   }
 }
