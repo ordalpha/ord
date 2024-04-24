@@ -94,7 +94,8 @@ pub enum Event {
   },
   BlockStart {
     height: u32,
-    block_hash: BlockHash
+    block_hash: BlockHash,
+    block_time: u32,
   },
   BlockEnd {
     height: u32,

@@ -582,9 +582,10 @@ impl<'index> Updater<'index> {
     if self.index.index_runes && self.height >= self.index.settings.first_rune_height() {
 
       let block_hash = block.header.block_hash(); 
+      let block_time = block.header.time;
 
       if let Some(sender) = &self.index.event_sender {
-        sender.blocking_send(Event::BlockStart { height: self.height, block_hash })?;
+        sender.blocking_send(Event::BlockStart { height: self.height, block_hash, block_time})?;
       }
 
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
