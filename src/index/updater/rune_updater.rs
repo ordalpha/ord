@@ -326,17 +326,22 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     // increment entries with burned runes
     for (id, amount) in burned {
       *self.burned.entry(id).or_default() += amount;
+    }
 
-      if let Some(sender) = self.event_sender {
-        sender.blocking_send(Event::RuneBurned {
-          block_height: self.height,
-          tx_index,
-          block_hash: self.block_hash,
-          txid,
-          rune_id: id,
-          amount: amount.n(),
-        })?;
-        self.event_count += 1;
+    // loop through burn entry to emit events
+    for (id, amount) in &self.burned {
+      if amount.0 > 0 {
+        if let Some(sender) = self.event_sender {
+          sender.blocking_send(Event::RuneBurned {
+            block_height: self.height,
+            tx_index,
+            block_hash: self.block_hash,
+            txid,
+            rune_id: id.clone(),
+            amount: amount.n(),
+          })?;
+          self.event_count += 1;
+        }
       }
     }
 
