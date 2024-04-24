@@ -33,7 +33,6 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
     // break early if nothing to index
     if let Some(Artifact::Cenotaph(cenotaph)) = &artifact {
       if cenotaph.etching.is_none() && cenotaph.mint.is_none() && unallocated.keys().len() == 0 {
-        println!("Tx {} no runes to index", tx_index);
         return Ok(());
       }
     }
