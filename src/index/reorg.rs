@@ -42,6 +42,15 @@ impl Reorg {
             .get_block_hash(u64::from(height.saturating_sub(depth)))
             .into_option()?;
 
+          // emit reorg detected event
+          if let Some(sender) = &index.event_sender {
+            if let Some(block_hash) = index_block_hash {
+              sender.blocking_send(Event::ReorgDetected{
+                height, block_hash
+              })?;  
+            }
+          }
+          
           if index_block_hash == bitcoind_block_hash {
             return Err(anyhow!(reorg::Error::Recoverable { height, depth }));
           }

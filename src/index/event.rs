@@ -89,7 +89,7 @@ pub enum Event {
     txid: Txid
   },
   ReorgDetected {
-    depth: u32,
+    block_hash: BlockHash,
     height: u32
   },
   BlockStart {
